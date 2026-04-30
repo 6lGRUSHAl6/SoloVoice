@@ -4,12 +4,10 @@
 
 **Бот для накрутки часов в голосовых каналах Discord**
 
-Заходит в канал, сидит в полном муте — тихо и незаметно.
+Заходит в канал, сидит в полном муте - тихо и незаметно.
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Discord.py](https://img.shields.io/badge/discord.py-2.3+-5865F2?style=for-the-badge&logo=discord&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![Ubuntu](https://img.shields.io/badge/Ubuntu-22.04+-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)
 
 </div>
 
@@ -82,7 +80,7 @@ docker compose version
 3. Раздел **Bot** → **Add Bot** → скопировать **Token**
 4. В разделе **Bot** включить интенты:
    - ✅ `Server Members Intent`
-   - ✅ `Voice States` — **обязательно**
+   - ✅ `Voice States` - **обязательно**
 5. Раздел **OAuth2 → URL Generator**:
    - Scopes: `bot`, `applications.commands`
    - Bot Permissions: `Connect`, `Speak`
@@ -182,7 +180,7 @@ docker compose up -d --build
 → Проверьте, что у бота есть права `Connect` и `Speak` в нужном канале.
 
 **Команды не появляются в Discord**
-→ Подождите до 1 минуты после запуска — slash-команды синхронизируются глобально.
+→ Подождите до 1 минуты после запуска - slash-команды синхронизируются глобально.
 
 **Ошибка `DISCORD_TOKEN не задана`**
 → Убедитесь, что файл `.env` существует и токен в нём без лишних пробелов и кавычек.
@@ -203,6 +201,6 @@ docker compose up -d --build
 
 <div align="center">
 
-Сделано с ❤️ и тихим микрофоном 🔇
+Сделано с ❤️ by 6llgrushall6
 
 </div>

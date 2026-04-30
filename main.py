@@ -41,14 +41,14 @@ async def join(interaction: discord.Interaction, channel_id: str):
         await interaction.followup.send("❌ Это не голосовой канал.", ephemeral=True)
         return
 
-    # Если уже в канале на этом сервере — отключиться сначала
+    # Еели уже в канале на этом сервере - отключиться сначала
     guild = interaction.guild
     if guild.voice_client is not None:
         await guild.voice_client.disconnect(force=True)
 
     try:
         vc = await channel.connect()
-        # Мут: бот не будет передавать аудио
+        # мут: бот не будет передавать аудио
         await guild.change_voice_state(channel=channel, self_mute=True, self_deaf=True)
         await interaction.followup.send(f"✅ Зашёл в канал **{channel.name}** (в муте).", ephemeral=True)
     except discord.Forbidden:
