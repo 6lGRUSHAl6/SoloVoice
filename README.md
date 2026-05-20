@@ -4,7 +4,7 @@
 
 **Бот для накрутки часов в голосовых каналах Discord**
 
-Заходит в канал, сидит в полном муте - тихо и незаметно.
+Заходит в канал, сидит в полном муте - тихо и незаметно набивая часы в войсе.
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Discord.py](https://img.shields.io/badge/discord.py-2.3+-5865F2?style=for-the-badge&logo=discord&logoColor=white)
@@ -17,8 +17,9 @@
 
 | Команда | Описание |
 |---|---|
-| `/join <ID канала>` | Зайти в голосовой канал (в муте) |
-| `/leave` | Выйти из голосового канала |
+| `/join <ID канала>` | Зайти в голосовой канал (только администраторы, в муте) |
+| `/leave` | Выйти из голосового канала (только администраторы) |
+| `/info` | Показать время работы, ID канала, момент входа и кто добавил бота |
 
 ---
 
@@ -26,11 +27,11 @@
 
 ```
 discord_voice_bot/
-├── bot.py               # Основной код бота
+├── main.py              # Основной код бота
 ├── Dockerfile           # Docker-образ
 ├── docker-compose.yml   # Compose-конфиг
 ├── requirements.txt     # Python-зависимости
-├── .env.example         # Пример файла с токеном
+├── env.example          # Пример файла с токеном
 └── .env                 # Ваш токен (создать вручную, не коммитить!)
 ```
 
@@ -105,7 +106,7 @@ mkdir discord-voice-bot && cd discord-voice-bot
 ### 4. Создать файл `.env` с токеном
 
 ```bash
-cp .env.example .env
+cp env.example .env
 nano .env
 ```
 
@@ -192,7 +193,7 @@ docker compose up -d --build
 
 ## 📦 Зависимости
 
-| Пакет | Версия | Назначение |
+| Что требуется | Версия/зависимость | Назначение |
 |---|---|---|
 | `discord.py[voice]` | ≥ 2.3.0 | Основная библиотека бота |
 | `PyNaCl` | ≥ 1.5.0 | Шифрование голосового соединения |
