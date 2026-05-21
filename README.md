@@ -177,7 +177,7 @@ MIT License - смотрите файл LICENSE для подробностей.
 
 ## 🤝 Автор
 
-Создано с ❤️ для Discord сообщества
+by 6llgrushall6
 
 ## 🗂️ Структура проекта
 
@@ -258,8 +258,8 @@ docker compose version
 
 ```bash
 # Если используете git
-git clone https://github.com/yourname/discord-voice-bot.git
-cd discord-voice-bot
+git clone https://github.com/6lGRUSHAl6/SoloVoice.git
+cd SoloVoice
 
 # Или просто создайте папку вручную
 mkdir discord-voice-bot && cd discord-voice-bot
