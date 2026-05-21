@@ -2,7 +2,7 @@
 
 # 🎙️ SoloVoice Discord Bot
 
-**Бот для управления голосовыми каналами Discord**
+**Бот для накрутки часов в войсе в discord**
 
 Современный Python-бот для управления голосовым каналом Discord с использованием модульной архитектуры на основе Cogs.
 
@@ -57,7 +57,7 @@ SoloVoice/
 
 ### 1️⃣ Клонируем репозиторий
 ```bash
-git clone https://github.com/your-username/SoloVoice.git
+git clone https://github.com/6lGRUSHAl6/SoloVoice.git
 cd SoloVoice
 ```
 
@@ -171,7 +171,7 @@ Cog со всеми голосовыми командами:
 
 ## 📝 Лицензия
 
-MIT License - смотрите файл LICENSE для подробностей.
+GPL 3.0 License
 
 ---
 
@@ -260,10 +260,6 @@ docker compose version
 # Если используете git
 git clone https://github.com/6lGRUSHAl6/SoloVoice.git
 cd SoloVoice
-
-# Или просто создайте папку вручную
-mkdir discord-voice-bot && cd discord-voice-bot
-# и скопируйте туда все файлы проекта
 ```
 
 ---
