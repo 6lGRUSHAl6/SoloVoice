@@ -1,13 +1,14 @@
 <div align="center">
 
-# 🎙️ Discord Voice Bot
+# 🎙️ SoloVoice Discord Bot
 
-**Бот для накрутки часов в голосовых каналах Discord**
+**Бот для управления голосовыми каналами Discord**
 
-Заходит в канал, сидит в полном муте - тихо и незаметно набивая часы в войсе.
+Современный Python-бот для управления голосовым каналом Discord с использованием модульной архитектуры на основе Cogs.
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Discord.py](https://img.shields.io/badge/discord.py-2.3+-5865F2?style=for-the-badge&logo=discord&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
 </div>
 
@@ -15,24 +16,188 @@
 
 ## 📋 Команды
 
-| Команда | Описание |
-|---|---|
-| `/join <ID канала>` | Зайти в голосовой канал (только администраторы, в муте) |
-| `/leave` | Выйти из голосового канала (только администраторы) |
-| `/info` | Показать время работы, ID канала, момент входа и кто добавил бота |
+| Команда | Описание | Права |
+|---------|---------|-------|
+| `/join <ID канала>` | Подключить бота к голосовому каналу | 🔐 Администратор |
+| `/leave` | Отключить бота от голосового канала | 🔐 Администратор |
+| `/info` | Показать информацию о текущем подключении | ✅ Все |
 
 ---
 
 ## 🗂️ Структура проекта
 
 ```
-discord_voice_bot/
-├── main.py              # Основной код бота
-├── Dockerfile           # Docker-образ
-├── docker-compose.yml   # Compose-конфиг
-├── requirements.txt     # Python-зависимости
-├── env.example          # Пример файла с токеном
-└── .env                 # Ваш токен (создать вручную, не коммитить!)
+SoloVoice/
+├── main.py                    # 🎯 Точка входа бота
+├── config.py                  # ⚙️ Конфигурация и переменные окружения
+├── requirements.txt           # 📦 Зависимости Python
+├── Dockerfile                 # 🐳 Образ для Docker
+├── docker-compose.yml         # 🐳 Конфигурация Docker Compose
+├── env.example                # 📋 Пример конфигурации (.env)
+├── .gitignore                 # 🚫 Файлы для исключения из Git
+│
+├── cogs/                      # 🔧 Расширения (Cogs) бота
+│   ├── __init__.py
+│   └── voice_commands.py      # 🎧 Команды управления голосовым каналом
+│
+└── utils/                     # 🛠️ Утилиты
+    ├── __init__.py
+    ├── voice_session.py       # 💾 Управление сессией голоса
+    ├── formatting.py          # 📝 Форматирование данных
+    └── checks.py              # ✔️ Проверки прав доступа
+```
+
+---
+
+## 🚀 Быстрый старт
+
+### Требования
+- Python 3.11+
+- Docker и Docker Compose (опционально)
+
+### 1️⃣ Клонируем репозиторий
+```bash
+git clone https://github.com/your-username/SoloVoice.git
+cd SoloVoice
+```
+
+### 2️⃣ Создаём конфигурацию
+```bash
+cp env.example .env
+```
+
+Откройте файл `.env` и вставьте ваш Discord токен:
+```env
+DISCORD_TOKEN=your_discord_token_here
+```
+
+### 3️⃣ Локальный запуск
+
+**С pip:**
+```bash
+pip install -r requirements.txt
+python main.py
+```
+
+**С venv (рекомендуется):**
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# или
+venv\Scripts\activate  # Windows
+
+pip install -r requirements.txt
+python main.py
+```
+
+### 4️⃣ Запуск через Docker
+
+```bash
+docker-compose up -d
+```
+
+Просмотр логов:
+```bash
+docker-compose logs -f
+```
+
+Остановка:
+```bash
+docker-compose down
+```
+
+---
+
+## 🔑 Получение Discord токена
+
+1. Перейдите на https://discord.com/developers/applications
+2. Нажмите "New Application"
+3. Перейдите в раздел "Bot" → "Add Bot"
+4. Нажмите "Copy Token" под именем бота
+5. Вставьте токен в файл `.env`
+
+### Требуемые привилегии (Intents)
+- ✅ Server Members Intent
+- ✅ Voice States Intent
+
+### Разрешения (Permissions)
+- ✅ View Channels
+- ✅ Connect
+- ✅ Speak
+
+---
+
+## 📁 Описание модулей
+
+### `main.py`
+Основной файл приложения. Инициализирует бота, загружает конфиги и Cogs.
+
+### `config.py`
+Управление конфигурацией и переменными окружения. Валидирует наличие необходимых переменных при старте.
+
+### `cogs/voice_commands.py`
+Cog со всеми голосовыми командами:
+- Безопасное подключение к каналу
+- Отслеживание состояния голоса
+- Информация о сессии
+
+### `utils/voice_session.py`
+Модель данных для управления голосовой сессией бота. Хранит ID канала, время присоединения и информацию о добавившем боте.
+
+### `utils/formatting.py`
+Утилиты для форматирования данных (например, форматирование времени работы).
+
+### `utils/checks.py`
+Функции проверки прав доступа (например, проверка администратора).
+
+---
+
+## 🐛 Решение проблем
+
+### Бот не появляется на сервере
+- ✅ Проверьте, что токен скопирован правильно
+- ✅ Убедитесь, что у бота есть нужные разрешения
+
+### Бот не подключается к голосовому каналу
+- ✅ Проверьте ID канала (`/info`)
+- ✅ Убедитесь, что бот имеет разрешение "Connect"
+- ✅ Посмотрите логи: `docker-compose logs`
+
+### Команды не появляются
+- ✅ Перезагрузите сервер Discord (Ctrl+R)
+- ✅ Пересоздайте приложение в Developers Portal
+
+---
+
+## 📝 Лицензия
+
+MIT License - смотрите файл LICENSE для подробностей.
+
+---
+
+## 🤝 Автор
+
+Создано с ❤️ для Discord сообщества
+
+## 🗂️ Структура проекта
+
+```
+SoloVoice/
+├── main.py                    # Точка входа бота
+├── requirements.txt           # Зависимости Python
+├── Dockerfile                 # Образ для Docker
+├── docker-compose.yml         # Конфигурация Docker Compose
+├── env.example                # Пример конфигурации (.env)
+│
+├── cogs/                      # Расширения (Cogs) бота
+│   ├── __init__.py
+│   └── voice_commands.py      # Команды управления голосовым каналом
+│
+└── utils/                     # Утилиты
+    ├── __init__.py
+    ├── voice_session.py       # Управление сессией голоса
+    ├── formatting.py          # Форматирование данных
+    └── checks.py              # Проверки прав доступа
 ```
 
 ---

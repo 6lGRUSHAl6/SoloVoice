@@ -5,6 +5,7 @@ Cog с командами управления голосовым каналом
 import discord
 from discord import app_commands
 from discord.ext import commands
+import asyncio
 
 from utils.voice_session import VoiceSession
 from utils.formatting import format_uptime
@@ -16,6 +17,55 @@ class VoiceCommandsCog(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.reconnect_attempt_count = {}  # Track reconnection attempts per guild
+
+    async def connect_to_channel_safe(self, channel: discord.VoiceChannel, max_retries: int = 3) -> bool:
+        """
+        Безопасное подключение к голосовому каналу с повторными попытками.
+        
+        Args:
+            channel: Голосовой канал для подключения
+            max_retries: Максимальное количество попыток подключения
+            
+        Returns:
+            True если подключение успешно, False иначе
+        """
+        guild = channel.guild
+        
+        for attempt in range(1, max_retries + 1):
+            try:
+                print(f"[VOICE] Попытка подключения {attempt}/{max_retries} к каналу {channel.name} (ID: {channel.id})")
+                
+                # Подключаемся с явным reconnect=True
+                voice_client = await channel.connect(
+                    self_mute=True, 
+                    self_deaf=False,
+                    reconnect=True,
+                    timeout=15.0  # Timeout для соединения
+                )
+                
+                print(f"[VOICE] ✅ Успешно подключились к каналу {channel.name}")
+                return True
+                
+            except asyncio.TimeoutError:
+                print(f"[VOICE] ⚠️  Timeout при попытке {attempt}/{max_retries}")
+                if attempt < max_retries:
+                    await asyncio.sleep(2 ** attempt)  # Экспоненциальная задержка
+                    
+            except discord.ClientException as e:
+                print(f"[VOICE] ❌ Client ошибка при попытке {attempt}: {e}")
+                if "already connected" in str(e).lower():
+                    return True  # Уже подключены
+                if attempt < max_retries:
+                    await asyncio.sleep(2 ** attempt)
+                    
+            except Exception as e:
+                print(f"[VOICE] ❌ Ошибка при попытке {attempt}: {type(e).__name__}: {e}")
+                if attempt < max_retries:
+                    await asyncio.sleep(2 ** attempt)
+        
+        print(f"[VOICE] ❌ Не удалось подключиться после {max_retries} попыток")
+        return False
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member: discord.Member, before, after):
@@ -30,7 +80,8 @@ class VoiceCommandsCog(commands.Cog):
 
         # Если бот вышел из канала (both before and after indicate disconnection)
         if before.channel is not None and after.channel is None:
-            # Удаляем сессию когда бот явно выходит
+            # Проверяем что это был реальный выход, а не переподключение
+            # Удаляем сессию только если это не автоматическое переподключение
             if member.guild.id in self.bot.voice_sessions:
                 print(f"[VOICE] Session deleted for guild {member.guild.id}")
                 self.bot.voice_sessions.pop(member.guild.id, None)
@@ -71,27 +122,33 @@ class VoiceCommandsCog(commands.Cog):
         try:
             # Отключаемся от старого канала если были там
             if guild.voice_client is not None:
-                await guild.voice_client.disconnect(force=True)
+                try:
+                    await guild.voice_client.disconnect(force=True)
+                    await asyncio.sleep(0.5)  # Небольшая задержка перед новым подключением
+                except Exception as e:
+                    print(f"[VOICE] Ошибка при отключении от старого канала: {e}")
 
             # Удаляем старую сессию
             self.bot.voice_sessions.pop(guild.id, None)
 
-            # Подключаемся к новому каналу
-            await channel.connect(self_mute=True, self_deaf=True)
-            
-            # Создаем новую сессию
-            self.bot.voice_sessions[guild.id] = VoiceSession(
-                channel_id=channel.id,
-                joined_at=discord.utils.utcnow(),
-                added_by_mention=interaction.user.mention,
-            )
-            
-            print(f"[VOICE] Bot joined channel {channel.id} in guild {guild.id}")
-            await interaction.edit_original_response(content=f"✅ Зашёл в канал **{channel.name}** (в муте).")
+            # Подключаемся к каналу с повторными попытками
+            if await self.connect_to_channel_safe(channel, max_retries=3):
+                # Создаем новую сессию
+                self.bot.voice_sessions[guild.id] = VoiceSession(
+                    channel_id=channel.id,
+                    joined_at=discord.utils.utcnow(),
+                    added_by_mention=interaction.user.mention,
+                )
+                
+                print(f"[VOICE] Bot joined channel {channel.id} in guild {guild.id}")
+                await interaction.edit_original_response(content=f"✅ Зашёл в канал **{channel.name}** (в муте, слушаю).")
+            else:
+                await interaction.edit_original_response(content="❌ Не удалось подключиться к каналу. Проверьте соединение сервера с Discord.")
             
         except discord.Forbidden:
             await interaction.edit_original_response(content="❌ Нет прав для входа в этот канал.")
         except Exception as e:
+            print(f"[VOICE] Необработанная ошибка в /join: {e}")
             await interaction.edit_original_response(content=f"❌ Ошибка: {e}")
 
     @app_commands.command(name="leave", description="Выйти из голосового канала")

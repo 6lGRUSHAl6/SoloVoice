@@ -1,20 +1,32 @@
+"""
+SoloVoice - Discord Voice Bot
+Бот для управления голосовыми каналами Discord.
+"""
+
 import discord
 from discord.ext import commands
-import os
-from dotenv import load_dotenv
+from config import DISCORD_TOKEN
 
-load_dotenv()
-
+# ============================================================================
 # Инициализация интентов
+# ============================================================================
+
 intents = discord.Intents.default()
 intents.voice_states = True
 
+# ============================================================================
 # Инициализация бота
+# ============================================================================
+
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # Глобальное состояние бота
 bot.bot_started_at = discord.utils.utcnow()
 bot.voice_sessions: dict[int, any] = {}
+
+# ============================================================================
+# Загрузка расширений (Cogs)
+# ============================================================================
 
 
 async def load_cogs():
@@ -24,6 +36,11 @@ async def load_cogs():
         print("✅ Cog 'voice_commands' загружен")
     except Exception as e:
         print(f"❌ Ошибка при загрузке cogs: {e}")
+
+
+# ============================================================================
+# События бота
+# ============================================================================
 
 
 @bot.event
@@ -42,17 +59,9 @@ async def setup_hook():
 
 bot.setup_hook = setup_hook
 
+# ============================================================================
+# Запуск бота
+# ============================================================================
 
-# Получение токена и запуск бота
-TOKEN = os.getenv("DISCORD_TOKEN")
-if not TOKEN:
-    raise ValueError("Переменная окружения DISCORD_TOKEN не задана!")
-
-bot.run(TOKEN)
-
-
-TOKEN = os.getenv("DISCORD_TOKEN")
-if not TOKEN:
-    raise ValueError("Переменная окружения DISCORD_TOKEN не задана!")
-
-bot.run(TOKEN)
+if __name__ == "__main__":
+    bot.run(DISCORD_TOKEN)
