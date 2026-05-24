@@ -1,0 +1,22 @@
+[Unit]
+Description=SoloVoice Discord Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=solovoice
+WorkingDirectory=/opt/solovoice
+Environment="PATH=/opt/solovoice/venv/bin"
+ExecStart=/opt/solovoice/venv/bin/python main.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Параметры безопасности
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
