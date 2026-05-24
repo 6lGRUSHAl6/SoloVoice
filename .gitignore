@@ -37,8 +37,5 @@ wheels/
 *~
 .DS_Store
 
-# Docker
-.dockerignore
-
 # Logs
 *.log
