@@ -106,7 +106,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-### 4️⃣ Запуск на Linux Home Server (systemd)
+### 4️⃣ Запуск на Linux сервере (systemd)
 
 **Автоматический запуск при загрузке сервера:**
 
