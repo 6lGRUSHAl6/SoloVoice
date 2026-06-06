@@ -4,8 +4,6 @@
 
 **Бот для накрутки часов в войсе в Discord**
 
-Современный Python-бот для управления голосовым каналом Discord с использованием модульной архитектуры на основе Cogs.
-
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Discord.py](https://img.shields.io/badge/discord.py-2.3+-5865F2?style=for-the-badge&logo=discord&logoColor=white)
 
@@ -17,9 +15,170 @@
 
 | Команда | Описание | Права |
 |---------|----------|-------|
-| `/join <ID канала>` | Подключить бота к голосовому каналу | 🔐 Администратор |
-| `/leave` | Отключить бота от голосового канала | 🔐 Администратор |
-| `/info` | Показать информацию о текущем подключении | ✅ Все |
+| `/join <ID канала>` | Зайти в голосовой канал по ID | 🔐 Администратор |
+| `/justjoin` | Зайти в канал, где сейчас находитесь вы | 🔐 Администратор |
+| `/leave` | Выйти из голосового канала | 🔐 Администратор |
+| `/info` | Информация о текущем подключении | ✅ Все |
+
+> `/justjoin` удобен с телефона — не нужно вводить ID канала вручную. Просто зайдите в войс и напишите команду.
+
+---
+
+## 🚀 Установка на Linux сервер (рекомендуется)
+
+### Что нужно заранее
+- Linux сервер (Ubuntu 20.04+)
+- Доступ по SSH с правами `sudo`
+- Discord токен (см. раздел [Получение токена](#-получение-discord-токена))
+
+### 1️⃣ Клонируем репозиторий
+
+```bash
+git clone https://github.com/6lGRUSHAl6/SoloVoice.git
+cd SoloVoice
+```
+
+### 2️⃣ Создаём файл с токеном
+
+```bash
+cp env.example .env
+nano .env
+```
+
+Заменяем `your_discord_token_here` на ваш реальный токен:
+
+```env
+DISCORD_TOKEN=ваш_токен_здесь
+```
+
+Сохраняем: `Ctrl+O` → `Enter` → `Ctrl+X`
+
+### 3️⃣ Запускаем установку
+
+```bash
+sudo bash setup-systemd.sh
+```
+
+Скрипт сам установит все зависимости, создаст окружение и зарегистрирует бота как системный сервис.
+
+### 4️⃣ Запускаем бота
+
+```bash
+sudo systemctl start solovoice
+```
+
+### 5️⃣ Проверяем что всё работает
+
+```bash
+sudo systemctl status solovoice
+```
+
+Должно быть `active (running)`. Если нет — смотрим логи:
+
+```bash
+sudo journalctl -u solovoice -f
+```
+
+---
+
+## 🔄 Обновление бота
+
+Когда вышла новая версия — обновить на сервере одной командой:
+
+```bash
+sudo git -C /opt/solovoice pull && sudo systemctl restart solovoice
+```
+
+> **Важно:** обновлять нужно именно в `/opt/solovoice`, а не в папке куда клонировали репозиторий. Там живёт рабочая версия бота.
+
+---
+
+## 🖥️ Локальный запуск (для разработки)
+
+```bash
+git clone https://github.com/6lGRUSHAl6/SoloVoice.git
+cd SoloVoice
+
+python3 -m venv venv
+source venv/bin/activate   # Linux/Mac
+# или
+venv\Scripts\activate      # Windows
+
+pip install -r requirements.txt
+
+cp env.example .env
+# отредактируйте .env и вставьте токен
+
+python main.py
+```
+
+---
+
+## 🔑 Получение Discord токена
+
+1. Откройте [discord.com/developers/applications](https://discord.com/developers/applications)
+2. Нажмите **New Application** → введите любое имя
+3. Раздел **Bot** → скопируйте **Token**
+4. В разделе **Bot** включите интенты:
+   - ✅ `Voice States Intent` — **обязательно**
+   - ✅ `Server Members Intent`
+5. Раздел **OAuth2 → URL Generator**:
+   - Scopes: `bot`, `applications.commands`
+   - Bot Permissions: `View Channels`, `Connect`, `Speak`
+6. Скопируйте ссылку → откройте в браузере → добавьте бота на сервер
+
+> ⚠️ **Никогда не публикуйте `.env` файл и не вставляйте токен в код!**
+
+---
+
+## 🔍 Как получить ID голосового канала
+
+1. Discord → **Настройки** → **Расширенные** → включить **Режим разработчика**
+2. Правой кнопкой на голосовой канал → **Копировать ID**
+
+---
+
+## 🛠️ Управление ботом
+
+```bash
+sudo systemctl start solovoice       # запустить
+sudo systemctl stop solovoice        # остановить
+sudo systemctl restart solovoice     # перезапустить
+sudo systemctl status solovoice      # статус
+sudo journalctl -u solovoice -f      # логи в реальном времени
+sudo journalctl -u solovoice -n 100  # последние 100 строк логов
+```
+
+---
+
+## 🐛 Решение проблем
+
+**Команды не появляются в Discord**
+→ Подождите 1-2 минуты и перезапустите Discord (`Ctrl+R`). Slash-команды синхронизируются при каждом старте бота.
+
+**Бот не подключается к голосовому каналу**
+→ Проверьте что у бота есть права `Connect` и `View Channels` на сервере.
+
+**Бот вылетает из войса**
+→ Проверьте права `Speak` — без него некоторые серверы выкидывают ботов автоматически. Также проверьте качество интернет-соединения сервера.
+
+**Ошибка `DISCORD_TOKEN не задана`**
+→ Проверьте файл `/opt/solovoice/.env` — токен должен быть без пробелов и кавычек:
+```bash
+sudo cat /opt/solovoice/.env
+```
+
+**Бот не запускается после `git pull`**
+→ Убедитесь что делаете pull в правильной папке:
+```bash
+sudo git -C /opt/solovoice pull
+sudo systemctl restart solovoice
+```
+
+**Нужно посмотреть ошибку подробнее**
+```bash
+sudo journalctl -u solovoice -n 50 --no-pager
+```
 
 ---
 
@@ -27,157 +186,31 @@
 
 ```
 SoloVoice/
-├── main.py                    # 🎯 Точка входа бота
-├── config.py                  # ⚙️ Конфигурация и переменные окружения
-├── requirements.txt           # 📦 Зависимости Python
-├── env.example                # 📋 Пример конфигурации (.env)
-├── .gitignore                 # 🚫 Файлы для исключения из Git
+├── main.py                    # Точка входа бота
+├── config.py                  # Конфигурация и переменные окружения
+├── requirements.txt           # Зависимости Python
+├── env.example                # Пример .env файла
+├── setup-systemd.sh           # Скрипт установки на Linux сервер
+├── solovoice.service          # systemd unit файл
 │
-├── cogs/                      # 🔧 Расширения (Cogs) бота
-│   ├── __init__.py
-│   └── voice_commands.py      # 🎧 Команды управления голосовым каналом
+├── cogs/
+│   └── voice_commands.py      # Все голосовые команды (/join, /justjoin, /leave, /info)
 │
-└── utils/                     # 🛠️ Утилиты
-    ├── __init__.py
-    ├── voice_session.py       # 💾 Управление сессией голоса
-    ├── formatting.py          # 📝 Форматирование данных
-    └── checks.py              # ✔️ Проверки прав доступа
+└── utils/
+    ├── voice_session.py       # Управление голосовой сессией
+    ├── formatting.py          # Форматирование данных
+    └── checks.py              # Проверки прав доступа
 ```
 
 ---
 
-## 📁 Описание модулей
-
-### `main.py`
-Основной файл приложения. Инициализирует бота, загружает конфиги и Cogs.
-
-### `config.py`
-Управление конфигурацией и переменными окружения. Валидирует наличие необходимых переменных при старте.
-
-### `cogs/voice_commands.py`
-Cog со всеми голосовыми командами:
-- Безопасное подключение к каналу
-- Отслеживание состояния голоса
-- Информация о сессии
-
-### `utils/voice_session.py`
-Модель данных для управления голосовой сессией бота. Хранит ID канала, время присоединения и информацию о добавившем боте.
-
-### `utils/formatting.py`
-Утилиты для форматирования данных (например, форматирование времени работы).
-
-### `utils/checks.py`
-Функции проверки прав доступа (например, проверка администратора).
-
----
-
-## 🚀 Быстрый старт
-
-### Требования
-- Python 3.11+
-- pip (Python package manager)
-
-### 1️⃣ Клонируем репозиторий
-```bash
-git clone https://github.com/6lGRUSHAl6/SoloVoice.git
-cd SoloVoice
-```
-
-### 2️⃣ Создаём конфигурацию
-```bash
-cp env.example .env
-```
-
-Откройте файл `.env` и вставьте ваш Discord токен:
-```env
-DISCORD_TOKEN=your_discord_token_here
-```
-
-### 3️⃣ Локальный запуск
-
-**С venv (рекомендуется):**
-```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# или
-venv\Scripts\activate     # Windows
-
-pip install -r requirements.txt
-python main.py
-```
-
-### 4️⃣ Запуск на Linux сервере (systemd)
-
-**Автоматический запуск при загрузке сервера:**
-
-```bash
-# 1. Перейти в папку проекта
-cd /path/to/SoloVoice
-
-# 2. Запустить скрипт установки
-sudo bash setup-systemd.sh
-
-# 3. После установки управлять ботом:
-sudo systemctl start solovoice      # Запустить
-sudo systemctl stop solovoice       # Остановить
-sudo systemctl status solovoice     # Статус
-sudo journalctl -u solovoice -f     # Логи
-```
-
-Подробные инструкции: [README_SYSTEMD.md](README_SYSTEMD.md) и [INSTALL_SYSTEMD.md](INSTALL_SYSTEMD.md)
-
----
-
-## 🔑 Получение Discord токена
-
-1. Перейдите на [discord.com/developers/applications](https://discord.com/developers/applications)
-2. Нажмите **New Application** → дайте любое имя
-3. Раздел **Bot** → **Add Bot** → скопируйте **Token**
-4. В разделе **Bot** включите интенты:
-   - ✅ `Server Members Intent`
-   - ✅ `Voice States Intent` — **обязательно**
-5. Раздел **OAuth2 → URL Generator**:
-   - Scopes: `bot`, `applications.commands`
-   - Bot Permissions: `View Channels`, `Connect`, `Speak`
-6. Скопируйте ссылку → откройте в браузере → добавьте бота на сервер
-
-> ⚠️ **Никогда не публикуйте `.env` в git!**
-
----
-
-## 🔍 Как получить ID голосового канала
-
-1. Откройте **Discord** → **Настройки** → **Расширенные**
-2. Включите **Режим разработчика**
-3. Правой кнопкой на голосовой канал → **Копировать ID**
-
----
-
-##  Зависимости
+## 📦 Зависимости
 
 | Пакет | Версия | Назначение |
 |-------|--------|------------|
 | `discord.py[voice]` | ≥ 2.3.0 | Основная библиотека бота |
 | `PyNaCl` | ≥ 1.5.0 | Шифрование голосового соединения |
-
----
-
-## 🐛 Решение проблем
-
-**Бот не появляется на сервере**
-→ Проверьте, что токен скопирован правильно и у бота есть нужные разрешения.
-
-**Бот не подключается к голосовому каналу**
-→ Проверьте ID канала (`/info`) и убедитесь, что у бота есть разрешение `Connect`.
-
-**Команды не появляются в Discord**
-→ Подождите до 1 минуты — slash-команды синхронизируются глобально. Можно также перезагрузить Discord (`Ctrl+R`).
-
-**Ошибка `DISCORD_TOKEN не задана`**
-→ Убедитесь, что файл `.env` существует и токен в нём без лишних пробелов и кавычек.
-
-**Бот не запускается на Linux**
-→ Проверьте логи: `sudo journalctl -u solovoice -n 100`. Обычно проблема в конфигурации `.env` или зависимостях Python.
+| `python-dotenv` | ≥ 1.0.0 | Чтение .env файла |
 
 ---
 
