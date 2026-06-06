@@ -210,6 +210,66 @@ class VoiceCommandsCog(commands.Cog):
             print(f"[VOICE] Необработанная ошибка в /join: {e}")
             await interaction.edit_original_response(content=f"❌ Ошибка: {e}")
 
+    @app_commands.command(name="justjoin", description="Зайти в голосовой канал вместе с вами")
+    @app_commands.guild_only()
+    @app_commands.default_permissions(administrator=True)
+    async def justjoin(self, interaction: discord.Interaction):
+        """Подключить бота к каналу, в котором сейчас находится пользователь."""
+
+        if not await require_admin(interaction):
+            return
+
+        guild = interaction.guild
+        if guild is None:
+            await interaction.response.send_message("❌ Эта команда доступна только на сервере.", ephemeral=True)
+            return
+
+        # Проверяем, что пользователь сейчас в войсе
+        member = interaction.user
+        if not isinstance(member, discord.Member) or member.voice is None or member.voice.channel is None:
+            await interaction.response.send_message("❌ Зайдите сначала в войс.", ephemeral=True)
+            return
+
+        channel = member.voice.channel
+
+        if not isinstance(channel, discord.VoiceChannel):
+            await interaction.response.send_message("❌ Поддерживаются только обычные голосовые каналы.", ephemeral=True)
+            return
+
+        await interaction.response.send_message("⏳ Подключаюсь...", ephemeral=True)
+
+        try:
+            # Отключаемся от старого канала если были там
+            if guild.voice_client is not None:
+                try:
+                    await guild.voice_client.disconnect(force=True)
+                    await asyncio.sleep(0.5)
+                except Exception as e:
+                    print(f"[VOICE] Ошибка при отключении от старого канала: {e}")
+
+            # Удаляем старую сессию
+            self.bot.voice_sessions.pop(guild.id, None)
+
+            # Подключаемся к каналу пользователя
+            if await self.connect_to_channel_safe(channel, max_retries=3):
+                self.bot.voice_sessions[guild.id] = VoiceSession(
+                    channel_id=channel.id,
+                    joined_at=discord.utils.utcnow(),
+                    added_by_mention=interaction.user.mention,
+                    is_persistent=True,
+                )
+
+                print(f"[VOICE] Bot justjoined channel {channel.id} in guild {guild.id}")
+                await interaction.edit_original_response(content=f"✅ Зашёл в канал **{channel.name}** (в муте, слушаю).")
+            else:
+                await interaction.edit_original_response(content="❌ Не удалось подключиться к каналу. Проверьте соединение сервера с Discord.")
+
+        except discord.Forbidden:
+            await interaction.edit_original_response(content="❌ Нет прав для входа в этот канал.")
+        except Exception as e:
+            print(f"[VOICE] Необработанная ошибка в /justjoin: {e}")
+            await interaction.edit_original_response(content=f"❌ Ошибка: {e}")
+
     @app_commands.command(name="leave", description="Выйти из голосового канала")
     @app_commands.guild_only()
     @app_commands.default_permissions(administrator=True)
