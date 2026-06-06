@@ -180,6 +180,10 @@ sudo systemctl restart solovoice
 sudo journalctl -u solovoice -n 50 --no-pager
 ```
 
+**Если у вас нету сервера, а бот нужен**
+→ Рекомендую добавить на свой сервер уже готового бота ```https://discord.com/oauth2/authorize?client_id=1506947810208251994```
+
+**Если проблема не решается - создайте issue с подробным описанием и логами.**
 ---
 
 ## 🗂️ Структура проекта
