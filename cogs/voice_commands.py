@@ -131,10 +131,13 @@ class VoiceCommandsCog(commands.Cog):
             # Если это постоянная сессия (бот был явно добавлен через /join), пытаемся переподключиться
             if session is not None and session.is_persistent:
                 print(f"[VOICE] ⚠️  Разрыв соединения в гильдии {member.guild.id}. Отмечаю и подготавливаюсь к переподключению...")
+                
+                # ВАЖНО: сначала получаем задержку (пока attempts ещё не увеличен),
+                # затем вызываем mark_disconnect() который увеличивает счётчик.
+                # Это гарантирует что первый разрыв даёт задержку 0.5с, а не 2с.
+                delay = session.get_reconnect_delay()
                 session.mark_disconnect()
                 
-                # Планируем переподключение через 2-5 секунд (с экспоненциальной задержкой)
-                delay = min(2 ** session.reconnect_attempts, 30)
                 print(f"[VOICE] Переподключение через {delay}с (попытка {session.reconnect_attempts})")
                 
                 # Запускаем задачу переподключения в фоне
@@ -169,11 +172,11 @@ class VoiceCommandsCog(commands.Cog):
         channel = guild.get_channel(channel_id_int)
 
         if channel is None:
-            await interaction.response.send_message("❌ Канал не найден. Проверьте ID.", ephemeral=True)
+            await interaction.response.send_message("❌ Канал не найден.", ephemeral=True)
             return
 
         if not isinstance(channel, discord.VoiceChannel):
-            await interaction.response.send_message("❌ Это не голосовой канал.", ephemeral=True)
+            await interaction.response.send_message("❌ Указанный канал не является голосовым.", ephemeral=True)
             return
 
         await interaction.response.send_message("⏳ Подключаюсь...", ephemeral=True)
@@ -183,20 +186,19 @@ class VoiceCommandsCog(commands.Cog):
             if guild.voice_client is not None:
                 try:
                     await guild.voice_client.disconnect(force=True)
-                    await asyncio.sleep(0.5)  # Небольшая задержка перед новым подключением
+                    await asyncio.sleep(0.5)
                 except Exception as e:
                     print(f"[VOICE] Ошибка при отключении от старого канала: {e}")
 
             # Удаляем старую сессию
             self.bot.voice_sessions.pop(guild.id, None)
 
-            # Подключаемся к каналу с повторными попытками
             if await self.connect_to_channel_safe(channel, max_retries=3):
-                # Создаем новую сессию
                 self.bot.voice_sessions[guild.id] = VoiceSession(
                     channel_id=channel.id,
                     joined_at=discord.utils.utcnow(),
                     added_by_mention=interaction.user.mention,
+                    is_persistent=True,
                 )
                 
                 print(f"[VOICE] Bot joined channel {channel.id} in guild {guild.id}")
